@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  mcp:
+    build: .
+    restart: on-failure
+    environment:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: password
+      PGDATABASE: analysis
+
+volumes:
+  pgdata:
