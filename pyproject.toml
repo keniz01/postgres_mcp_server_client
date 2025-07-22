@@ -1,14 +1,18 @@
 [project]
-name = "mcp-tutorial"
+name = "fastmcp-postgres-server"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.13"
+description = "A FastMCP server backed by PostgreSQL"
+authors = [{name = "Your Name"}]
 dependencies = [
     "asyncio>=3.4.3",
     "asyncpg>=0.30.0",
     "fastapi>=0.116.1",
-    "mcp[cli]>=1.9.4",
-    "ruff>=0.11.13",
-    "uvicorn>=0.34.3",
+    "fastmcp>=2.10.5",
+    "llama-cpp-python>=0.3.12",
+    "psycopg2-binary>=2.9.10",
+    "pydantic>=2.11.7",
+    "slowapi>=0.1.9",
+    "sqlalchemy[asyncio]>=2.0.41",
+    "uvicorn>=0.35.0",
 ]
+requires-python = ">=3.11"
