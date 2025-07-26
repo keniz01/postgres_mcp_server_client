@@ -2,7 +2,7 @@ import time
 import asyncio
 from functools import wraps
 
-class CallTimer:
+class OperationTimer:
     def __init__(self, func):
         self.func = func
         wraps(func)(self)  # Preserve metadata (e.g., __name__, __doc__)

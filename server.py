@@ -4,7 +4,6 @@ import json
 from contextlib import asynccontextmanager
 from collections import defaultdict
 from configparser import ConfigParser
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncConnection

@@ -1,24 +1,22 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, FastAPI, HTTPException
 from fastmcp import Client
-from llama_model_manager import LlamaModelManager
-from call_timer import CallTimer
-from typing import Any
+from src.llama_model_manager import LlamaModelManager
+from src.operation_timer import CallTimer
+from typing import List, Dict
+from models.query_models import QueryRequest, QueryResponse
 
+# --- FastAPI App Initialization ---
 app = FastAPI(
     title="SQL Generator API",
     description="This API takes a natural language question and returns a Postgres SQL query based on the database schema context.",
     version="1.0.0"
 )
 
-class QueryRequest(BaseModel):
-    question: str
+# --- APIRouter Initialization ---
+router = APIRouter(prefix="/query", tags=["Query"])
 
-class QueryResponse(BaseModel):
-    sql: str
-    result: Any
-
-def create_messages(question: str, context: str):
+# --- Helper Function to Build Prompt ---
+def create_messages(question: str, context: str) -> List[Dict[str, str]]:
     return [
         {
             "role": "system",
@@ -51,9 +49,11 @@ def create_messages(question: str, context: str):
         {"role": "user", "content": f"Context: {context}\nQuestion: {question}"}
     ]
 
+
+# --- Endpoint Logic ---
 @CallTimer
-@app.post(
-    "/query",
+@router.post(
+    "",
     response_model=QueryResponse,
     summary="Generate SQL from a natural language question",
     description="""
@@ -64,7 +64,7 @@ This endpoint takes a natural language question, uses a preloaded schema context
 It uses a language model to convert the prompt and few-shot examples into SQL.
 """
 )
-async def generate_sql_query(request: QueryRequest):
+async def generate_sql_query(request: QueryRequest) -> QueryResponse:
     try:
         async with Client("http://localhost:8080/mcp") as client:
             schema_resource = await client.read_resource("schema://analysis")
@@ -72,7 +72,7 @@ async def generate_sql_query(request: QueryRequest):
 
             llama_model = LlamaModelManager.get_instance()
             response = llama_model.create_chat_completion(
-                messages=create_messages(question=request.question, context=schema),
+                messages=create_messages(request.question, schema),
                 temperature=0.2,
                 top_p=0.8,
                 max_tokens=1024
@@ -80,10 +80,12 @@ async def generate_sql_query(request: QueryRequest):
 
             sql = response["choices"][0]["message"]["content"].strip()
             result = await client.call_tool("execute_query", {"sql": sql})
-            return {
-                "sql": sql,
-                "result": result.content
-            }
+
+            return QueryResponse(sql=sql, result=result.content)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Optional: log traceback here
+        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+
+# --- Register Router ---
+app.include_router(router)

@@ -1,7 +1,7 @@
 import asyncpg
 import logging
 from typing import Optional
-from config import load_db_config
+from src.config import load_db_config
 
 logger = logging.getLogger(__name__)
 
